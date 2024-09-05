@@ -1,44 +1,20 @@
 const express = require('express');
 const app = express();
-const {pokemon} = require('./pokedex.json');
-const bodyParser = require('express');
+const morgan = require('morgan');
+const pokemon = require('./routes/pokemon')
 
-app.use(bodyParser.json());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
 app.get('/', (req, res, next)=>{
-   return res.status(200).send('Bienvenido al pokedex');
+   return res.status(200).json({code: 1, message: "Bienvenido al pokedex"})
 });
 
-app.post("/pokemon", (req, res, next)=>{
-    return res.status(200).send("Estas en post");
-});
+app.use('/pokemon', pokemon);
 
-app.get('/pokemon/all', (req, res, next)=>{
-    return res.status(200).send(pokemon);
-});
-
-app.get('/pokemon/:id([0-9]{1,3})', (req, res, next)=>{
-    const id = req.params.id - 1;
-    if(id >= 0 && id <= 150) {
-    res.status(200).send(pokemon[req.params.id - 1]);
-    }
-    else{
-        return res.status(404).send("Pokemon no encontrado");
-    }
-});
-
-app.get('/pokemon/:name([A-Za-z]+)', (req, res, next)=>{
-    const name = req.params.name;
-        const pk = pokemon.filter((p) => {
-        if(p.name.toUpperCase()==name.toUpperCase()) {
-            return p;
-        }
-    });
-    console.log(pk);
-    if(pk.length>0){
-         return res.status(200).send(pk);
-    }
-   return res.status(404).send('Pokemon no encontrado');
+app.use((req, res, next)=>{
+    return res.status(404).json({code: 404, message: "Url no encontrada"})
 });
 
 app.listen(process.env.PORT || 3000, ()=>{
